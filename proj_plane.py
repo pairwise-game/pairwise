@@ -13,7 +13,10 @@
 # algo: start counting, jump elements whose leftmost non-0 element != 1
 import itertools
 
-
+#  From all possible triples (0,0,0) to (n,n,n) reject:
+#  - (0,0,0)
+#  - tuples that are multiples of other tuples, ie (0,0,2) is (0,0,1) * 2
+#  - This amounts to rejecting tuples where the left-most value is not 0 or 1
 def f(t):
     match t:
         case (0,0,0):
@@ -27,10 +30,12 @@ def f(t):
         case _:
             return True
 
+#  Generate all triples and send through the filter
 def homog_coords(order):
     trips = [i for i in itertools.product(range(order), repeat=3)]
     return list(filter(lambda x: f(x), trips))
 
+#  Our dot product, for triples of elements mod order
 def dotprod(x,y, order):
     return (x[0]*y[0] + x[1]*y[1] + x[2]*y[2]) % order
 
@@ -42,14 +47,18 @@ def make_deck(order):
         deck.append(card)
     return deck
 
-#  Some testing
-def main():
-    assert len(homog_coords(3)) == 13
-    assert len(homog_coords(11)) == 133
-
-    A = make_deck(3)
+def main(order):
+    A = make_deck(order)
+    assert len(homog_coords(order)) == order**2 + order + 1
+    
+    #  TODO: change to try/except, probably only fails if non-prime order, might accidentally succeed though
+    assert all(len(elems) == order+1 for elems in A)
     print(A)
 
-
 if __name__ == '__main__':
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Generate a finite projective plane.')
+    parser.add_argument('order', type=int, help='PP order, must be prime')
+    args = parser.parse_args()
+    main(args.order)
