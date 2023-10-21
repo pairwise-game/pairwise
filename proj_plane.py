@@ -1,16 +1,10 @@
 # Implementing from https://blog.polettix.it/some-maths-for-dobble/
 
-# Move comments to notes
+# TODO: Move background/notes to markdown
 
 # only prime order
 # number of coords will be order^2 + order + 1
 # projective plane order n is a Steiner system S(2, n+1, n^2+n+1)
-
-# from all possible triples, (0,0,0) to (n,n,n) skip:
-#  - (0,0,0)
-#  - tuples that are multiples of other tuples, ie (0,0,1) and (0,0,2)
-
-# algo: start counting, jump elements whose leftmost non-0 element != 1
 import itertools
 
 #  From all possible triples (0,0,0) to (n,n,n) reject:
@@ -39,6 +33,7 @@ def homog_coords(order):
 def dotprod(x,y, order):
     return (x[0]*y[0] + x[1]*y[1] + x[2]*y[2]) % order
 
+#  Put together the "deck"
 def make_deck(order):
     H = homog_coords(order)
     deck = []
@@ -47,18 +42,45 @@ def make_deck(order):
         deck.append(card)
     return deck
 
-def main(order):
-    A = make_deck(order)
-    assert len(homog_coords(order)) == order**2 + order + 1
-    
-    #  TODO: change to try/except, probably only fails if non-prime order, might accidentally succeed though
-    assert all(len(elems) == order+1 for elems in A)
-    print(A)
+def format_deck(deck, format):
+    if format == 'readable':
+        deck = list(enumerate(deck))
+        for i in range(len(deck)):
+            deck[i] = f"{str(i).rjust(3)}: {' '.join(str(e).rjust(3) for e in deck[i][1])}"
+    return deck
 
+def main(args):
+    order = args.order
+    deck = make_deck(order)
+    assert len(homog_coords(order)) == order**2 + order + 1
+    #  TODO: change to try/except, probably only fails if non-prime order, might accidentally succeed though
+    assert all(len(elems) == order+1 for elems in deck)
+    deck = format_deck(deck, args.format)
+    if args.print:
+        for i in deck:
+            print(i)
+    if args.output:
+        with open(args.output, 'w') as file:
+            for line in deck:
+                file.write(str(line) + '\n')
+
+#  Call proj_plane.py <order> <options> to generate the deck of that order
 if __name__ == '__main__':
     import argparse
 
-    parser = argparse.ArgumentParser(description='Generate a finite projective plane.')
-    parser.add_argument('order', type=int, help='PP order, must be prime')
+    parser = argparse.ArgumentParser(description='Generate a finite projective plane.',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('order', type=int, help='Specify the order, must be prime.')
+    parser.add_argument('-f', '--format', type=str, choices=['lists', 'readable'], 
+                        default='lists', 
+                        required=False,
+                        help='Format: "lists" or "readable"')
+    parser.add_argument('-p', '--print', 
+                        default=False, 
+                        action="store_true", 
+                        help='Print the PP')
+    parser.add_argument('-o', '--output',
+                        type=str,
+                        help="Output in plaintext to a file. Specify filename.")
     args = parser.parse_args()
-    main(args.order)
+    main(args)
