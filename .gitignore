@@ -8,3 +8,4 @@ envdev
 .virtualenv
 *.pyc
 .DS_Store
+test.txt
