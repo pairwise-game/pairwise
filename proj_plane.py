@@ -43,10 +43,18 @@ def make_deck(order):
     return deck
 
 def format_deck(deck, format):
-    if format == 'readable':
-        deck = list(enumerate(deck))
-        for i in range(len(deck)):
-            deck[i] = f"{str(i).rjust(3)}: {' '.join(str(e).rjust(3) for e in deck[i][1])}"
+    match format:
+        case 'readable':
+            deck = list(enumerate(deck))
+            for i in range(len(deck)):
+                deck[i] = f"{str(i).rjust(3)}: {' '.join(str(e).rjust(3) for e in deck[i][1])}"
+        case 'nums':
+            for i in range(len(deck)):
+                deck[i] = ' '.join(str(v) for v in deck[i])  
+        case 'csv':
+            for i in range(len(deck)):
+                deck[i] = ','.join(str(v) for v in deck[i])
+
     return deck
 
 def main(args):
@@ -71,10 +79,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate a finite projective plane.',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('order', type=int, help='Specify the order, must be prime.')
-    parser.add_argument('-f', '--format', type=str, choices=['lists', 'readable'], 
+    parser.add_argument('-f', '--format', type=str, choices=['lists', 'readable', 'nums', 'csv'], 
                         default='lists', 
                         required=False,
-                        help='Format: "lists" or "readable"')
+                        help='Format: "lists", "readable", or "nums"')
     parser.add_argument('-p', '--print', 
                         default=False, 
                         action="store_true", 
