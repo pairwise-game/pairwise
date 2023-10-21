@@ -42,35 +42,55 @@ def make_deck(order):
         deck.append(card)
     return deck
 
-def format_deck(deck, format):
+def format_deck(deck, format, one_index):
     match format:
+        # readable:  <card id>:  <card elements>
         case 'readable':
-            deck = list(enumerate(deck))
+            if one_index:
+                deck = list(enumerate(deck, start=1))  # indexing from 1
+            else:
+                deck = list(enumerate(deck))           # indexing from 0, default
             for i in range(len(deck)):
-                deck[i] = f"{str(i).rjust(3)}: {' '.join(str(e).rjust(3) for e in deck[i][1])}"
+                deck[i] = f"{str(deck[i][0]).rjust(3)}: {' '.join(str(e).rjust(3) for e in deck[i][1])}"
+        # nums:  3 4 9 11
         case 'nums':
             for i in range(len(deck)):
                 deck[i] = ' '.join(str(v) for v in deck[i])  
+        # csv:   3,4,9,11
         case 'csv':
             for i in range(len(deck)):
                 deck[i] = ','.join(str(v) for v in deck[i])
-
     return deck
 
+#  Output to a file
+#  TODO:  handle errors
+def file_output(deck, filename):
+    with open(filename, 'w') as file:
+            for line in deck:
+                file.write(str(line) + '\n')
+
+#  Adjust deck to be 1..n instead of 0..n-1
+def index_from_one(deck):
+    for i in range(len(deck)):
+        deck[i] = list(v+1 for v in deck[i])
+    return deck
+
+#  Default behavior for running this file
 def main(args):
     order = args.order
     deck = make_deck(order)
     assert len(homog_coords(order)) == order**2 + order + 1
     #  TODO: change to try/except, probably only fails if non-prime order, might accidentally succeed though
     assert all(len(elems) == order+1 for elems in deck)
-    deck = format_deck(deck, args.format)
+    
+    if args.one:
+        deck = index_from_one(deck)   
+    deck = format_deck(deck, args.format, args.one)
     if args.print:
         for i in deck:
             print(i)
     if args.output:
-        with open(args.output, 'w') as file:
-            for line in deck:
-                file.write(str(line) + '\n')
+        file_output(deck, args.output)
 
 #  Call proj_plane.py <order> <options> to generate the deck of that order
 if __name__ == '__main__':
@@ -84,11 +104,15 @@ if __name__ == '__main__':
                         required=False,
                         help='Format: "lists", "readable", or "nums"')
     parser.add_argument('-p', '--print', 
+                        action="store_true",
                         default=False, 
-                        action="store_true", 
                         help='Print the PP')
     parser.add_argument('-o', '--output',
                         type=str,
                         help="Output in plaintext to a file. Specify filename.")
+    parser.add_argument('-1', '--one',
+                        action='store_true',
+                        default=False,
+                        help='Index from 1 instead of 0')
     args = parser.parse_args()
     main(args)
