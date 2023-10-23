@@ -1,10 +1,3 @@
-# Implementing from https://blog.polettix.it/some-maths-for-dobble/
-
-# TODO: Move background/notes to markdown
-
-# only prime order
-# number of coords will be order^2 + order + 1
-# projective plane order n is a Steiner system S(2, n+1, n^2+n+1)
 import itertools
 
 #  From all possible triples (0,0,0) to (n,n,n) reject:
@@ -24,7 +17,7 @@ def f(t):
         case _:
             return True
 
-#  Generate all triples and send through the filter
+#  Generate all triples and send through the filter f()
 def homog_coords(order):
     trips = [i for i in itertools.product(range(order), repeat=3)]
     return list(filter(lambda x: f(x), trips))
@@ -44,7 +37,7 @@ def make_deck(order):
 
 def format_deck(deck, format, one_index):
     match format:
-        # readable:  <card id>:  <card elements>
+        #  readable:  <card id>:  <card elements>
         case 'readable':
             if one_index:
                 deck = list(enumerate(deck, start=1))  # indexing from 1
@@ -52,18 +45,18 @@ def format_deck(deck, format, one_index):
                 deck = list(enumerate(deck))           # indexing from 0, default
             for i in range(len(deck)):
                 deck[i] = f"{str(deck[i][0]).rjust(3)}: {' '.join(str(e).rjust(3) for e in deck[i][1])}"
-        # nums:  3 4 9 11
+        #  nums:  3 4 9 11
         case 'nums':
             for i in range(len(deck)):
                 deck[i] = ' '.join(str(v) for v in deck[i])  
-        # csv:   3,4,9,11
+        #  csv:   3,4,9,11
         case 'csv':
             for i in range(len(deck)):
                 deck[i] = ','.join(str(v) for v in deck[i])
     return deck
 
 #  Output to a file
-#  TODO:  handle errors
+#  TODO:  handle errors, directories, OS independent
 def file_output(deck, filename):
     with open(filename, 'w') as file:
             for line in deck:

@@ -1,0 +1,12 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pairwise-games"
+version = "0.0.1"
+authors = [
+    {name = "Chris Anderson", email = "contact@christopher-anderson.net"},
+]
+readme = "README.md"
+license = {file = "LICENSE"}
