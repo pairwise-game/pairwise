@@ -27,17 +27,32 @@ def dotprod(x,y, order):
     return (x[0]*y[0] + x[1]*y[1] + x[2]*y[2]) % order
 
 #  Put together the "deck"
-def make_deck(order):
+def make_deck(order, one_index = False, cardnum = False):
     H = homog_coords(order)
     deck = []
     for i in range(len(H)):
         card = [H.index(n) for n in H if dotprod(n, H[i], order) == 0]
         deck.append(card)
+    
+    #  Index from 1 instead of 0?
+    if one_index:
+        for i in range(len(deck)):
+            deck[i] = list(v+1 for v in deck[i])
+    
+    #  Prepend the card id to each card?
+    if cardnum:
+        if one_index:   
+            for i in range(len(deck)):
+                deck[i] = [i+1] + deck[i]   # indexing by 1
+        else:
+            for i in range(len(deck)):
+                deck[i] = [i] + deck[i]     # indexing by 0
     return deck
 
 def format_deck(deck, format, one_index):
     match format:
         #  readable:  <card id>:  <card elements>
+        #  TODO:   Maybe assume one_index?
         case 'readable':
             if one_index:
                 deck = list(enumerate(deck, start=1))  # indexing from 1
@@ -62,22 +77,18 @@ def file_output(deck, filename):
             for line in deck:
                 file.write(str(line) + '\n')
 
-#  Adjust deck to be 1..n instead of 0..n-1
-def index_from_one(deck):
-    for i in range(len(deck)):
-        deck[i] = list(v+1 for v in deck[i])
-    return deck
-
 #  Default behavior for running this file
 def main(args):
+    #  Assume index-from-one, if format "readable"
+    if args.format == 'readable':
+        args.one = True
     order = args.order
-    deck = make_deck(order)
-    assert len(homog_coords(order)) == order**2 + order + 1
+    deck = make_deck(order, args.one, args.cardnum)
+    #  These asserts will fail if we're prepending the cardnum
+    # assert len(homog_coords(order)) == order**2 + order + 1
     #  TODO: change to try/except, probably only fails if non-prime order, might accidentally succeed though
-    assert all(len(elems) == order+1 for elems in deck)
+    # assert all(len(elems) == order+1 for elems in deck)
     
-    if args.one:
-        deck = index_from_one(deck)   
     deck = format_deck(deck, args.format, args.one)
     if args.print:
         for i in deck:
@@ -86,6 +97,7 @@ def main(args):
         file_output(deck, args.output)
 
 #  Call proj_plane.py <order> <options> to generate the deck of that order
+#  TODO:  Don't allow 'readable' format + prepend cardnum
 if __name__ == '__main__':
     import argparse
 
@@ -95,7 +107,7 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--format', type=str, choices=['lists', 'readable', 'nums', 'csv'], 
                         default='lists', 
                         required=False,
-                        help='Format: "lists", "readable", or "nums"')
+                        help='Format: "lists", "readable", or "nums".')
     parser.add_argument('-p', '--print', 
                         action="store_true",
                         default=False, 
@@ -106,6 +118,10 @@ if __name__ == '__main__':
     parser.add_argument('-1', '--one',
                         action='store_true',
                         default=False,
-                        help='Index from 1 instead of 0')
+                        help='Index from 1 instead of 0.')
+    parser.add_argument('-c', '--cardnum',
+                        action='store_true',
+                        default=False,
+                        help='Prepend a card number index to each card.')
     args = parser.parse_args()
     main(args)
